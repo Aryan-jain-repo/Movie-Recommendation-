@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Movie Recommendation System</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>Movie Recommendation System</h1>
+        <form id="recommendation-form">
+            <label for="movie">Type or select a movie:</label>
+            <input list="movies" id="movie" name="movie" autocomplete="off">
+            <datalist id="movies">
+                {% for movie in movies %}
+                    <option value="{{ movie }}"></option>
+                {% endfor %}
+            </datalist>
+            <button type="submit">Show Recommendation</button>
+        </form>
+        <div id="recommendations" class="recommendations"></div>
+    </div>
+    <script>
+        document.getElementById('recommendation-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const movie = document.getElementById('movie').value;
+            fetch('/recommend', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ movie: movie }),
+            })
+            .then(response => response.json())
+            .then(data => {
+                const recommendationsDiv = document.getElementById('recommendations');
+                recommendationsDiv.innerHTML = '';
+                data.forEach(rec => {
+                    const movieDiv = document.createElement('div');
+                    movieDiv.classList.add('movie');
+                    movieDiv.innerHTML = `
+                        <h3>${rec.name}</h3>
+                        <img src="${rec.poster}" alt="${rec.name}">
+                        <p>Release date: ${rec.details.date}</p>
+                        <p>Revenue: ${rec.details.revenue}</p>
+                        <p>Runtime: ${rec.details.runtime} mins</p>
+                    `;
+                    recommendationsDiv.appendChild(movieDiv);
+                });
+            });
+        });
+    </script>
+</body>
+</html>
